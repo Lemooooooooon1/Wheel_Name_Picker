@@ -39,7 +39,7 @@ export const DEFAULT_NAMES = [
 ]
 
 export const SPIN_MIN_ROTATIONS = 5
-export const SPIN_DURATION_MS = 4500
+export const SPIN_DURATION_MS = 5500
 export const WINNER_DISPLAY_DELAY_MS = 300
 
 export const STORAGE_KEY = 'wheel-picker-entries'

@@ -19,6 +19,7 @@ export const useWheelStore = create(
       entries: DEFAULT_NAMES.map(makeEntry),
       isSpinning: false,
       winner: null,
+      winnerId: null,
       showWinnerModal: false,
       soundEnabled: true,
 
@@ -62,7 +63,19 @@ export const useWheelStore = create(
 
       setSpinning: (v) => set({ isSpinning: v }),
 
-      setWinner: (name) => set({ winner: name }),
+      setWinner: (name) => {
+        const entry = get().entries.find(
+          (e) => e.name.toLowerCase() === name.toLowerCase()
+        )
+        set({ winner: name, winnerId: entry ? entry.id : null })
+      },
+
+      removeWinner: () => {
+        const { winnerId } = get()
+        if (winnerId) {
+          set((s) => ({ entries: s.entries.filter((e) => e.id !== winnerId), winnerId: null }))
+        }
+      },
 
       showModal: () => set({ showWinnerModal: true }),
 

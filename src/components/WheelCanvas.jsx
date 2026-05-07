@@ -20,6 +20,7 @@ export function WheelCanvas() {
     soundEnabled,
     setSpinning,
     setWinner,
+    clearWinner,
     showModal,
   } = useWheelStore()
 
@@ -29,12 +30,13 @@ export function WheelCanvas() {
   const handleSpinComplete = useCallback(() => {
     setSpinning(false)
     setGlowState('winner')
+    setWinner(winnerNameRef.current)
     if (soundEnabled) playWinnerSound()
     setTimeout(() => {
       showModal()
       setTimeout(() => setGlowState('idle'), 600)
     }, 400)
-  }, [setSpinning, showModal, soundEnabled])
+  }, [setSpinning, setWinner, showModal, soundEnabled])
 
   const { spin, currentAngleRef } = useSpinAnimation({
     onComplete: handleSpinComplete,
@@ -45,8 +47,8 @@ export function WheelCanvas() {
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
+    const ro = new ResizeObserver((resizeEntries) => {
+      for (const entry of resizeEntries) {
         const w = entry.contentRect.width
         setSize(Math.min(w, 520))
       }
@@ -82,7 +84,7 @@ export function WheelCanvas() {
     if (!winner) return
 
     winnerNameRef.current = winner
-    setWinner(winner)
+    clearWinner()
     setSpinning(true)
     setGlowState('spinning')
 
@@ -90,18 +92,20 @@ export function WheelCanvas() {
       (e) => e.name.toLowerCase() === winner.toLowerCase()
     )
 
+    const segments = computeSegments(entries)
+    segmentsRef.current = segments
+
     spin(
       winnerIndex,
       entries.length,
       (angle) => {
         const canvas = canvasRef.current
         if (!canvas) return
-        const segments = computeSegments(entries)
-        drawWheel(canvas, segments, angle, null)
+        drawWheel(canvas, segmentsRef.current, angle, null)
       },
       SPIN_DURATION_MS
     )
-  }, [isSpinning, entries, spin, setSpinning, setWinner])
+  }, [isSpinning, entries, spin, setSpinning, clearWinner])
 
   const canSpin = entries.length >= 2 && !isSpinning
 

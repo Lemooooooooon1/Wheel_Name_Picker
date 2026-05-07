@@ -43,5 +43,3 @@ export const SPIN_DURATION_MS = 5500
 export const WINNER_DISPLAY_DELAY_MS = 300
 
 export const STORAGE_KEY = 'wheel-picker-entries'
-
-export const PRIORITY_POOL = ['lia', 'bazi', 'ori']

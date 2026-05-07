@@ -26,12 +26,7 @@ export function Header() {
           letterSpacing: '0.03em',
         }}
       >
-        <span style={{ opacity: 0.7 }}>⚠</span>
-        <span>
-          Priority names:{' '}
-          <span className="font-bold">{PRIORITY_DISPLAY}</span>
-          {' '}— these names always win when present in the pool
-        </span>
+        
       </motion.div>
 
       <motion.header

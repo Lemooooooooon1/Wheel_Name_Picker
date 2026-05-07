@@ -3,8 +3,18 @@ import { useRef, useCallback } from 'react'
 import { computeTargetAngle } from '../utils/wheel'
 import { playTick } from '../utils/sound'
 
-function easeOut(t) {
-  return 1 - Math.pow(1 - t, 4)
+// Fast start → sustain → dramatic crawl to stop
+// t in [0,1], returns eased progress in [0,1]
+function easeOutDramatic(t) {
+  if (t < 0.6) {
+    // First 60% of time: covers ~85% of distance with quartic ease-in start
+    const s = t / 0.6
+    return 0.85 * (1 - Math.pow(1 - s, 2.2))
+  } else {
+    // Last 40% of time: crawls through remaining 15% — very steep deceleration
+    const s = (t - 0.6) / 0.4
+    return 0.85 + 0.15 * (1 - Math.pow(1 - s, 5))
+  }
 }
 
 export function useSpinAnimation({ onComplete, soundEnabled }) {
@@ -12,7 +22,7 @@ export function useSpinAnimation({ onComplete, soundEnabled }) {
   const startTimeRef = useRef(null)
   const startAngleRef = useRef(0)
   const targetAngleRef = useRef(0)
-  const durationRef = useRef(4500)
+  const durationRef = useRef(5500)
   const lastTickAngleRef = useRef(0)
   const tickIntervalRef = useRef(Math.PI / 8)
 
@@ -26,7 +36,7 @@ export function useSpinAnimation({ onComplete, soundEnabled }) {
   }, [])
 
   const spin = useCallback(
-    (winnerIndex, totalEntries, onFrame, duration = 4500) => {
+    (winnerIndex, totalEntries, onFrame, duration = 5500) => {
       cancel()
 
       const startAngle = currentAngleRef.current
@@ -38,17 +48,14 @@ export function useSpinAnimation({ onComplete, soundEnabled }) {
       startTimeRef.current = null
       lastTickAngleRef.current = startAngle
 
-      // Adaptive tick interval based on segment count
-      tickIntervalRef.current = totalEntries > 10
-        ? Math.PI / 12
-        : Math.PI / 8
+      tickIntervalRef.current = totalEntries > 10 ? Math.PI / 14 : Math.PI / 9
 
       function frame(timestamp) {
         if (!startTimeRef.current) startTimeRef.current = timestamp
 
         const elapsed = timestamp - startTimeRef.current
         const progress = Math.min(elapsed / durationRef.current, 1)
-        const eased = easeOut(progress)
+        const eased = easeOutDramatic(progress)
 
         const angle =
           startAngleRef.current +
@@ -56,10 +63,13 @@ export function useSpinAnimation({ onComplete, soundEnabled }) {
 
         currentAngleRef.current = angle
 
-        // Tick sound on each segment crossing
+        // Tick sound — slow down tick rate near the end to match wheel speed
         const normalizedAngle = angle % (2 * Math.PI)
         const tickDelta = normalizedAngle - (lastTickAngleRef.current % (2 * Math.PI))
-        if (Math.abs(tickDelta) >= tickIntervalRef.current) {
+        const dynamicInterval = progress > 0.75
+          ? tickIntervalRef.current * (1 + (progress - 0.75) * 8)
+          : tickIntervalRef.current
+        if (Math.abs(tickDelta) >= dynamicInterval) {
           if (soundEnabled) playTick()
           lastTickAngleRef.current = normalizedAngle
         }

@@ -1,6 +1,6 @@
 // src/components/WheelCanvas.jsx
 import React, { useRef, useEffect, useCallback, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { computeSegments, drawWheel } from '../utils/wheel'
 import { resolveOutcome } from '../utils/selection'
 import { useSpinAnimation } from '../hooks/useSpinAnimation'
@@ -12,7 +12,7 @@ export function WheelCanvas() {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const [size, setSize] = useState(460)
-  const [isGlowing, setIsGlowing] = useState(false)
+  const [glowState, setGlowState] = useState('idle') // idle | spinning | winner
 
   const {
     entries,
@@ -24,19 +24,17 @@ export function WheelCanvas() {
   } = useWheelStore()
 
   const segmentsRef = useRef([])
+  const winnerNameRef = useRef(null)
 
   const handleSpinComplete = useCallback(() => {
-    const seg = segmentsRef.current.find((s) => s.name === winnerNameRef.current)
     setSpinning(false)
-    setIsGlowing(true)
+    setGlowState('winner')
     if (soundEnabled) playWinnerSound()
     setTimeout(() => {
       showModal()
-      setIsGlowing(false)
-    }, 350)
+      setTimeout(() => setGlowState('idle'), 600)
+    }, 400)
   }, [setSpinning, showModal, soundEnabled])
-
-  const winnerNameRef = useRef(null)
 
   const { spin, currentAngleRef } = useSpinAnimation({
     onComplete: handleSpinComplete,
@@ -86,6 +84,7 @@ export function WheelCanvas() {
     winnerNameRef.current = winner
     setWinner(winner)
     setSpinning(true)
+    setGlowState('spinning')
 
     const winnerIndex = entries.findIndex(
       (e) => e.name.toLowerCase() === winner.toLowerCase()
@@ -106,53 +105,70 @@ export function WheelCanvas() {
 
   const canSpin = entries.length >= 2 && !isSpinning
 
+  const glowColor = glowState === 'winner'
+    ? '0 0 70px rgba(251,191,36,0.55), 0 0 140px rgba(245,158,11,0.25)'
+    : glowState === 'spinning'
+    ? '0 0 50px rgba(99,102,241,0.4), 0 0 100px rgba(99,102,241,0.2)'
+    : '0 0 24px rgba(99,102,241,0.12)'
+
   return (
     <div ref={containerRef} className="w-full flex flex-col items-center gap-6">
       <div className="relative flex items-center justify-center">
         {/* Glow ring */}
         <motion.div
           animate={{
-            opacity: isSpinning ? [0.3, 0.7, 0.3] : isGlowing ? 1 : 0,
-            scale: isGlowing ? [1, 1.04, 1] : 1,
+            opacity: glowState === 'spinning' ? [0.4, 0.8, 0.4] : glowState === 'winner' ? [0.8, 1, 0.8] : 0.3,
+            scale: glowState === 'winner' ? [1, 1.06, 1] : 1,
           }}
           transition={{
-            duration: isSpinning ? 1.5 : 0.5,
-            repeat: isSpinning ? Infinity : 0,
+            duration: glowState === 'spinning' ? 1.2 : 0.6,
+            repeat: glowState === 'spinning' ? Infinity : glowState === 'winner' ? 3 : 0,
             ease: 'easeInOut',
           }}
-          className="absolute inset-0 rounded-full"
+          className="absolute rounded-full pointer-events-none"
           style={{
-            boxShadow: isGlowing
-              ? '0 0 60px rgba(99,102,241,0.6), 0 0 120px rgba(99,102,241,0.3)'
-              : '0 0 40px rgba(99,102,241,0.2)',
+            boxShadow: glowColor,
             borderRadius: '50%',
-            width: size + 20,
-            height: size + 20,
-            left: -10,
-            top: -10,
+            width: size + 24,
+            height: size + 24,
+            left: -12,
+            top: -12,
           }}
         />
 
-        {/* Pointer */}
-        <div
+        {/* Pointer — game-show style arrow pointing down into the wheel */}
+        <motion.div
           className="absolute z-10 no-select"
+          animate={glowState === 'winner' ? { y: [0, -4, 0] } : { y: 0 }}
+          transition={{ duration: 0.5, repeat: glowState === 'winner' ? 2 : 0, ease: 'easeInOut' }}
           style={{
-            top: -2,
+            top: -4,
             left: '50%',
             transform: 'translateX(-50%)',
-            filter: 'drop-shadow(0 2px 8px rgba(244,63,94,0.8))',
+            filter: 'drop-shadow(0 3px 10px rgba(244,63,94,0.9))',
           }}
         >
-          <svg width="24" height="36" viewBox="0 0 24 36">
-            <polygon
-              points="12,2 22,18 12,30 2,18"
-              fill="#f43f5e"
-              stroke="rgba(255,255,255,0.3)"
+          <svg width="28" height="44" viewBox="0 0 28 44" fill="none">
+            {/* Outer pin body */}
+            <path
+              d="M14 2 C14 2 26 14 26 22 C26 30 20 40 14 42 C8 40 2 30 2 22 C2 14 14 2 14 2Z"
+              fill="url(#pinGrad)"
+              stroke="rgba(255,255,255,0.25)"
               strokeWidth="1.5"
             />
-            <circle cx="12" cy="18" r="4" fill="white" fillOpacity="0.9" />
+            {/* Highlight */}
+            <ellipse cx="10" cy="14" rx="3.5" ry="5.5" fill="rgba(255,255,255,0.25)" transform="rotate(-15 10 14)" />
+            {/* Center dot */}
+            <circle cx="14" cy="24" r="4" fill="rgba(255,255,255,0.9)" />
+            <defs>
+              <linearGradient id="pinGrad" x1="14" y1="2" x2="14" y2="42" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#ff6b8a" />
+                <stop offset="50%" stopColor="#f43f5e" />
+                <stop offset="100%" stopColor="#be123c" />
+              </linearGradient>
+            </defs>
           </svg>
-        </div>
+        </motion.div>
 
         {/* Canvas */}
         <motion.canvas
@@ -161,10 +177,27 @@ export function WheelCanvas() {
           height={size}
           style={{ width: size, height: size }}
           className="rounded-full cursor-pointer"
-          whileHover={canSpin ? { scale: 1.01 } : {}}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          whileHover={canSpin ? { scale: 1.012 } : {}}
+          transition={{ type: 'spring', stiffness: 380, damping: 28 }}
           onClick={!isSpinning ? handleSpin : undefined}
         />
+
+        {/* Winner flash overlay */}
+        <AnimatePresence>
+          {glowState === 'winner' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.18, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, times: [0, 0.3, 1] }}
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle, rgba(251,191,36,0.6) 0%, transparent 70%)',
+                borderRadius: '50%',
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Spin Button */}
@@ -176,18 +209,19 @@ export function WheelCanvas() {
 function SpinButton({ onSpin, canSpin, isSpinning }) {
   return (
     <motion.button
+      data-spin-btn
       onClick={onSpin}
       disabled={!canSpin}
-      whileHover={canSpin ? { scale: 1.04, y: -2 } : {}}
-      whileTap={canSpin ? { scale: 0.97 } : {}}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      whileHover={canSpin ? { scale: 1.05, y: -3 } : {}}
+      whileTap={canSpin ? { scale: 0.96 } : {}}
+      transition={{ type: 'spring', stiffness: 380, damping: 20 }}
       className="relative overflow-hidden px-10 py-3.5 rounded-2xl font-semibold text-base tracking-wide disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 no-select"
       style={{
         background: canSpin
           ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
           : 'rgba(99,102,241,0.3)',
         boxShadow: canSpin
-          ? '0 4px 24px rgba(99,102,241,0.4), 0 0 0 1px rgba(99,102,241,0.3)'
+          ? '0 4px 28px rgba(99,102,241,0.45), 0 0 0 1px rgba(99,102,241,0.3)'
           : 'none',
         color: '#fff',
       }}
@@ -207,7 +241,7 @@ function SpinButton({ onSpin, canSpin, isSpinning }) {
         <motion.div
           className="absolute inset-0 shimmer"
           animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'linear' }}
         />
       )}
     </motion.button>

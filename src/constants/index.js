@@ -43,3 +43,6 @@ export const SPIN_DURATION_MS = 5500
 export const WINNER_DISPLAY_DELAY_MS = 300
 
 export const STORAGE_KEY = 'wheel-picker-entries'
+
+// Names that always win when present in the pool (displayed openly in the UI)
+export const PRIORITY_NAMES = ['lia', 'ori', 'bazi', 'lea']

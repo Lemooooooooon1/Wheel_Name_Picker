@@ -65,11 +65,14 @@ export function useSpinAnimation({ onComplete, soundEnabled }) {
 
         // Tick sound — slow down tick rate near the end to match wheel speed
         const normalizedAngle = angle % (2 * Math.PI)
-        const tickDelta = normalizedAngle - (lastTickAngleRef.current % (2 * Math.PI))
+        const lastNorm = lastTickAngleRef.current % (2 * Math.PI)
+        let tickDelta = normalizedAngle - lastNorm
+        // Handle 0/2π wrap-around: always measure forward progress
+        if (tickDelta < 0) tickDelta += 2 * Math.PI
         const dynamicInterval = progress > 0.75
           ? tickIntervalRef.current * (1 + (progress - 0.75) * 8)
           : tickIntervalRef.current
-        if (Math.abs(tickDelta) >= dynamicInterval) {
+        if (tickDelta >= dynamicInterval) {
           if (soundEnabled) playTick()
           lastTickAngleRef.current = normalizedAngle
         }

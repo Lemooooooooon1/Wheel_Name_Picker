@@ -33,12 +33,15 @@ export function computeTargetAngle(winnerIndex, totalEntries, currentAngle) {
 
 export function drawWheel(canvas, segments, rotationAngle, hoveredSegment) {
   const ctx = canvas.getContext('2d')
-  const { width, height } = canvas
-  const cx = width / 2
-  const cy = height / 2
+  const dpr = window.devicePixelRatio || 1
+  // canvas.width is physical pixels; ctx is pre-scaled by dpr, so use logical coords
+  const logicalW = canvas.width / dpr
+  const logicalH = canvas.height / dpr
+  const cx = logicalW / 2
+  const cy = logicalH / 2
   const radius = Math.min(cx, cy) - 14
 
-  ctx.clearRect(0, 0, width, height)
+  ctx.clearRect(0, 0, logicalW, logicalH)
 
   if (segments.length === 0) {
     drawEmptyState(ctx, cx, cy, radius)

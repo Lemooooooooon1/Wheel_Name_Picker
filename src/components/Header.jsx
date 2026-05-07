@@ -13,21 +13,7 @@ export function Header() {
 
   return (
     <div>
-      {/* Priority names banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold"
-        style={{
-          background: 'linear-gradient(90deg, rgba(245,158,11,0.18) 0%, rgba(251,191,36,0.10) 50%, rgba(245,158,11,0.18) 100%)',
-          borderBottom: '1px solid rgba(245,158,11,0.3)',
-          color: '#fbbf24',
-          letterSpacing: '0.03em',
-        }}
-      >
-        
-      </motion.div>
+     
 
       <motion.header
         initial={{ opacity: 0, y: -16 }}

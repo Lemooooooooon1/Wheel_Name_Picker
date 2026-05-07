@@ -13,7 +13,12 @@ export function Header() {
 
   return (
     <div>
-     
+      {/* Priority names banner */}
+      <motion.div
+       
+      >
+        
+      </motion.div>
 
       <motion.header
         initial={{ opacity: 0, y: -16 }}

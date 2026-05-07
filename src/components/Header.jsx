@@ -14,7 +14,7 @@ export function Header() {
       className="flex items-center justify-between px-6 py-4"
       style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3"> 
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center"
           style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}

@@ -2,45 +2,15 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { useWheelStore } from '../hooks/useWheelStore'
-import { PRIORITY_NAMES } from '../constants'
 
-const PRIORITY_DISPLAY = PRIORITY_NAMES.map(
-  (n) => n.charAt(0).toUpperCase() + n.slice(1)
-).join(', ')
+
+
 
 export function Header() {
   const { soundEnabled, toggleSound } = useWheelStore()
 
-  return (
-    <div>
-      {/* Priority names banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold"
-        style={{
-          background: 'linear-gradient(90deg, rgba(245,158,11,0.18) 0%, rgba(251,191,36,0.10) 50%, rgba(245,158,11,0.18) 100%)',
-          borderBottom: '1px solid rgba(245,158,11,0.3)',
-          color: '#fbbf24',
-          letterSpacing: '0.03em',
-        }}
-      >
-        <span style={{ opacity: 0.7 }}>⚠</span>
-        <span>
-          Priority names:{' '}
-          <span className="font-bold">{PRIORITY_DISPLAY}</span>
-          {' '}— these names always win when present in the pool
-        </span>
-      </motion.div>
+  return (  
 
-    <motion.header
-      initial={{ opacity: 0, y: -16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="flex items-center justify-between px-6 py-4"
-      style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-    >
       <div className="flex items-center gap-3">
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center"

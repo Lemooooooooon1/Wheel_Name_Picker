@@ -39,7 +39,7 @@ export default function App() {
           }}
         />
         <div
-          className="absolute rounded-full blur-3xl opacity-8"
+          className="absolute rounded-full blur-3xl opacity-10"
           style={{
             width: '300px',
             height: '300px',

@@ -77,6 +77,8 @@ export const useWheelStore = create(
         }
       },
 
+      clearWinner: () => set({ winner: null, winnerId: null }),
+
       showModal: () => set({ showWinnerModal: true }),
 
       hideModal: () => set({ showWinnerModal: false }),
